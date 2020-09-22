@@ -1,5 +1,6 @@
 import typing as tp
 
+
 class ReX:
     """
     Abstract class that contains regular expression.
@@ -48,8 +49,9 @@ class Concatenation(ReX):
         return f"({self.first},{self.second})"
 
     def accepts(self, string: str) -> bool:
-        for l in range(len(string) + 1):
-            if self.first.accepts(string[:l]) and self.second.accepts(string[l:]):
+        for left_size in range(len(string) + 1):
+            lhs, rhs = string[:left_size], string[left_size:]
+            if self.first.accepts(lhs) and self.second.accepts(rhs):
                 return True
         return False
 
@@ -76,17 +78,18 @@ class KleeneStar(ReX):
     """
 
     def __init__(self, regular_expression: ReX):
-        self.value = regular_expression
+        self.inner = regular_expression
 
     def __str__(self) -> str:
-        return str(self.value) + "*"
+        return str(self.inner) + "*"
 
     def accepts(self, string: str) -> bool:
         if not string:
             return True
 
-        for l in range(1, len(string) + 1):
-            if self.value.accepts(string[:l]) and self.accepts(string[l:]):
+        for left_size in range(1, len(string) + 1):
+            lhs, rhs = string[:left_size], string[left_size:]
+            if self.inner.accepts(lhs) and self.accepts(rhs):
                 return True
 
         return False
@@ -108,7 +111,7 @@ class RexIterator:
 
     def advance(self):
         self.cursor += 1
-        while self.cursor < len(self.expression) and self.expression[self.cursor].isspace():
+        while self.cursor < len(self.expression) and self.token().isspace():
             self.cursor += 1
 
     def __next__(self) -> ReX:
@@ -116,12 +119,15 @@ class RexIterator:
             raise StopIteration
 
         current_token = self.token()
+        result: ReX
+
         if current_token == "(":
             self.advance()
             first_rex = self.__next__()
 
             if self.is_end() or self.token() not in [",", "|"]:
-                raise Exception("Wrong format of expression, expected , or | after (")
+                raise Exception(
+                    "Wrong format of expression, expected , or | after (")
 
             operation = self.token()
             self.advance()
@@ -198,14 +204,17 @@ def single_example():
 
 def some_examples(sequence_string: str, strings: tp.List[str]):
     """
-    Parses expressions from given sequence and checks for every string if it is accepted by regexp
+    Parses expressions from given sequence and
+    checks for every string if it is accepted by regexp
 
     :arg sequence_string: sequence with regexps
     :arg strings: strings to check
     """
     for expression in RexSequence(sequence_string):
         for string in strings:
-            print(expression, "accepts" if expression.accepts(string) else "not accepts", string)
+            print(expression,
+                  "accepts" if expression.accepts(string) else "not accepts",
+                  string)
 
 
 def simple_examples():
@@ -224,7 +233,9 @@ def simple_examples():
 
 if __name__ == "__main__":
     single_example()
-    some_examples(sequence_string="a (a,b) a** (b|a)", strings=["", "aa", "ab", "b", "a"])
+    some_examples(
+        sequence_string="a (a,b) a** (b|a)",
+        strings=["", "aa", "ab", "b", "a"])
     # prints:
     #   a not accepts
     #   (a,b) not accepts aa
