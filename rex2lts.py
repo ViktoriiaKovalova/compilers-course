@@ -51,3 +51,15 @@ a_lts = rex2lts(Symbol('a'))
 print(a_lts)  # start: 0, end: 1, transitions: {Transition(from_=0, lbl='a', to=1)}
 print(a_lts.accepts("a"))  # True
 print(a_lts.accepts("b"))  # False
+a_star = rex2lts(KleeneStar(Symbol('a')))
+print(a_star.accepts(""))  # True
+print(a_star.accepts("aaaa"))  # True
+print(a_star.accepts("aaabaa"))  # False
+cat_or_dog = rex2lts(Union(Symbol('cat'), Symbol('dog')))
+print(cat_or_dog.accepts(["cat"]))  # True
+print(cat_or_dog.accepts(["dog"]))  # True
+print(cat_or_dog.accepts(["cow"]))  # False
+aaaa_cat = rex2lts(Concatenation(KleeneStar(Symbol('a')), Symbol("cat")))
+print(aaaa_cat.accepts(["a", "a", "a", "cat"]))  # True
+print(aaaa_cat.accepts(["a", "a", "b", "cat"]))  # False
+
