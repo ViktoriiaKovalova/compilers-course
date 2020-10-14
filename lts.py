@@ -36,27 +36,12 @@ class LTS:
     def __repr__(self) -> str:
         return f"start: {self.start}, end: {self.end}, transitions: {sorted(self.transitions, key=lambda x: x.from_)}"
 
-    def get_start(self) -> int:
-        return self.start
-
-    def get_end(self) -> int:
-        return self.end
-
-    def get_states(self) -> tp.Set[int]:
-        return self.states
-
-    def get_tokens(self) -> tp.Set[str]:
-        return self.tokens
-
-    def get_transitions(self) -> tp.Set[Transition]:
-        return self.transitions
-
-    def closure(self, state: int) -> tp.Set[int]:
+    def closure(self, states: tp.List[int]) -> tp.Set[int]:
         """
-        returns the closure of given state, e.g. all states reachable via epsilon-transitions
+        returns the closure of given states, e.g. all states reachable via epsilon-transitions
         """
-        set_ = {state}
-        added = [state]
+        set_ = set(states)
+        added = list(set_)
         while added:
             cur = added.pop()
             # if no epsilon transitions
@@ -69,7 +54,7 @@ class LTS:
         return set_
 
     def accepts(self, chain: tp.Sequence[str]) -> bool:
-        reached = {(x, 0) for x in self.closure(self.start)}
+        reached = {(x, 0) for x in self.closure([self.start])}
         while reached:
             state, length = reached.pop()
             # if we found good path
@@ -79,6 +64,8 @@ class LTS:
             if length >= len(chain):
                 continue
             if self.trans_from_lbl.get((state, chain[length])):
+                new_states = []
                 for tr in self.trans_from_lbl[(state, chain[length])]:
-                    reached.update([(x, length + 1) for x in self.closure(tr.to)])
+                    new_states.append(tr.to)
+                reached.update([(x, length + 1) for x in self.closure(new_states)])
         return False

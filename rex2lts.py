@@ -6,7 +6,7 @@ import typing as tp
 def rex2lts(rexp: ReX, first_state=0) -> LTS:
     """
     Builds LTS from given regexp.
-    States will be numbered as 0, ..., len(states) - 1.
+    States will be numbered as 0, .m.., len(states) - 1.
     First one is starting state, last one - ending state.
     First_state is used to avoid collisions of states in recursive calls.
     """
@@ -46,20 +46,23 @@ def rex2lts(rexp: ReX, first_state=0) -> LTS:
     return LTS(start, end, range(start, end + 1), {x.lbl for x in transitions}, transitions)
 
 
-# examples
-a_lts = rex2lts(Symbol('a'))
-print(a_lts)  # start: 0, end: 1, transitions: {Transition(from_=0, lbl='a', to=1)}
-print(a_lts.accepts("a"))  # True
-print(a_lts.accepts("b"))  # False
-a_star = rex2lts(KleeneStar(Symbol('a')))
-print(a_star.accepts(""))  # True
-print(a_star.accepts("aaaa"))  # True
-print(a_star.accepts("aaabaa"))  # False
-cat_or_dog = rex2lts(Union(Symbol('cat'), Symbol('dog')))
-print(cat_or_dog.accepts(["cat"]))  # True
-print(cat_or_dog.accepts(["dog"]))  # True
-print(cat_or_dog.accepts(["cow"]))  # False
-aaaa_cat = rex2lts(Concatenation(KleeneStar(Symbol('a')), Symbol("cat")))
-print(aaaa_cat.accepts(["a", "a", "a", "cat"]))  # True
-print(aaaa_cat.accepts(["a", "a", "b", "cat"]))  # False
+if __name__ == "__main__":
+    """
+    examples and some checks for correct work
+    """
+    a_lts = rex2lts(Symbol('a'))
+    print(a_lts)  # start: 0, end: 1, transitions: {Transition(from_=0, lbl='a', to=1)}
+    assert a_lts.accepts("a")
+    assert not a_lts.accepts("b")
+    a_star = rex2lts(KleeneStar(Symbol("a")))
+    assert a_star.accepts("")
+    assert a_star.accepts("aaaa")
+    assert not a_star.accepts("aaabaa")
+    cat_or_dog = rex2lts(Union(Symbol("cat"), Symbol("dog")))
+    assert cat_or_dog.accepts(["cat"])
+    assert cat_or_dog.accepts(["dog"])
+    assert not cat_or_dog.accepts(["cow"])
+    aaaa_cat = rex2lts(Concatenation(KleeneStar(Symbol("a")), Symbol("cat")))
+    assert aaaa_cat.accepts(["a", "a", "a", "cat"])
+    assert not aaaa_cat.accepts(["a", "a", "b", "cat"])
 
