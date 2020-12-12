@@ -31,30 +31,30 @@ class ContextFreeGrammar:
             assert non_term in non_terminals, "This is not a context-free grammar"
 
 
-def delete_unreachable(grammar_: ContextFreeGrammar):
+def delete_unreachable(grammar: ContextFreeGrammar):
     """
     Deletes unreachable non-terminals from given CF grammar.
     """
-    reachable: tp.Set[str] = {grammar_.start} if grammar_.start in grammar_.non_terminals else set()
+    reachable: tp.Set[str] = {grammar.start} if grammar.start in grammar.non_terminals else set()
     changed: bool = True  # if reachable was updated on last iteration
     while changed:
         changed = False
-        for non_term, rules in grammar_.rules.items():
+        for non_term, rules in grammar.rules.items():
             if non_term not in reachable:
                 continue
             for rule in rules:
                 for symbol in rule:
-                    if symbol in grammar_.non_terminals and symbol not in reachable:
+                    if symbol in grammar.non_terminals and symbol not in reachable:
                         reachable.add(symbol)
                         changed = True
     # delete not reachable symbols from grammar rules
-    for symbol in grammar_.non_terminals:
+    for symbol in grammar.non_terminals:
         if symbol not in reachable:
-            grammar_.rules.pop(symbol, None)
-    grammar_.non_terminals = reachable
+            grammar.rules.pop(symbol, None)
+    grammar.non_terminals = reachable
 
 
-def delete_dead(grammar_: ContextFreeGrammar):
+def delete_dead(grammar: ContextFreeGrammar):
     """
     Deletes dead non-terminals from given CF grammar
     """
@@ -62,32 +62,35 @@ def delete_dead(grammar_: ContextFreeGrammar):
     changed: bool = True  # if alive was updated on last iteration
     while changed:
         changed = False
-        for non_term, rules in grammar_.rules.items():
+        for non_term, rules in grammar.rules.items():
             if non_term in alive:
                 continue
             for rule in rules:
-                if all(x in grammar_.terminals or x in alive for x in rule):
+                if all(x in grammar.terminals or x in alive for x in rule):
                     alive.add(non_term)
                     changed = True
                     break
-    for symbol in grammar_.non_terminals:
+    for symbol in grammar.non_terminals:
         if symbol not in alive:
-            grammar_.rules.pop(symbol)
-    for symbol, rules in grammar_.rules.items():
+            grammar.rules.pop(symbol)
+    for symbol, rules in grammar.rules.items():
         # delete all rules containing dead non-terminals
-        grammar_.rules[symbol] = [rule for rule in rules if all(x in grammar_.terminals or x in alive for x in rule)]
-    grammar_.non_terminals = alive
+        grammar.rules[symbol] = [rule for rule in rules if all(x in grammar.terminals or x in alive for x in rule)]
+    grammar.non_terminals = alive
 
 
-def delete_extra_non_terminals(grammar_: ContextFreeGrammar):
+def delete_extra_non_terminals(grammar: ContextFreeGrammar):
     """
     Deletes dead and unreachable non-terminals from grammar.
     """
-    delete_dead(grammar_)
-    delete_unreachable(grammar_)
+    delete_dead(grammar)
+    delete_unreachable(grammar)
 
 
-if __name__ == "__main__":
+def test_delete_extra():
+    """
+    Runs some checks for delete_extra_non_terminals
+    """
     grammar = ContextFreeGrammar({'a', 'b'}, {'A', 'B'}, 'A', {'A': ['aA']})
     delete_unreachable(grammar)
     assert grammar.non_terminals == {'A'}
@@ -110,3 +113,5 @@ if __name__ == "__main__":
     assert grammar.non_terminals == {'A', 'B'}
 
 
+if __name__ == "__main__":
+    test_delete_extra()

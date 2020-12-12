@@ -46,7 +46,7 @@ def rex2lts(rexp: ReX, first_state=0) -> LTS:
     return LTS(start, end, range(start, end + 1), {x.lbl for x in transitions}, transitions)
 
 
-if __name__ == "__main__":
+def main():
     """
     examples and some checks for correct work
     """
@@ -65,4 +65,10 @@ if __name__ == "__main__":
     aaaa_cat = rex2lts(Concatenation(KleeneStar(Symbol("a")), Symbol("cat")))
     assert aaaa_cat.accepts(["a", "a", "a", "cat"])
     assert not aaaa_cat.accepts(["a", "a", "b", "cat"])
+
+
+if __name__ == "__main__":
+    main()
+
+
 
