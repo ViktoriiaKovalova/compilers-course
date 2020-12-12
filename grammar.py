@@ -19,14 +19,12 @@ class ContextFreeGrammar:
     non-terminals - non-terminal symbols of grammar
     start - the start non-terminal symbol of grammar
     rules - rules of context-free grammar
-    epsilon - empty symbol for grammar (default is "")
     """
-    def __init__(self,  terminals: tp.Set[str], non_terminals: tp.Set[str], start: str, rules: Rules, epsilon: str = ""):
+    def __init__(self,  terminals: tp.Set[str], non_terminals: tp.Set[str], start: str, rules: Rules):
         self.terminals = terminals
         self.non_terminals = non_terminals
         self.start = start
         self.rules = rules
-        self.epsilon = epsilon
         for non_term in rules:
             assert non_term in non_terminals, "This is not a context-free grammar"
 
