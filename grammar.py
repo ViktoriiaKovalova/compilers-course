@@ -8,7 +8,7 @@ Dictionary that contains rules for given context-free grammar
 Group of rule A -> a1...ak | b1...bl | ... will be represented as a pair:
 A: [[a1, ..., ak], [b1, ..., bl], ...]
 """
-Rules = tp.Dict[str, tp.Sequence[tp.Sequence[str]]]
+Rules = tp.Dict[str, tp.List[tp.Sequence[str]]]
 
 
 class ContextFreeGrammar:
@@ -27,6 +27,7 @@ class ContextFreeGrammar:
         self.non_terminals = non_terminals
         self.start = start
         self.rules = rules
+        self._last_used_symbol = 0
         for non_term in rules:
             assert non_term in non_terminals, "This is not a context-free grammar"
 
@@ -116,6 +117,43 @@ class ContextFreeGrammar:
         # now let's check if there is a cycle
         return Graph(graph).has_cycle()
 
+    def delete_vanishings(self) -> None:
+        vanishings = self.get_vanishings()
+        for symb, group in self.rules.items():
+            new_rules = []
+            for rule in group:
+                vanishing_ind = []
+                for i, ch in enumerate(rule):
+                    if ch in vanishings:
+                        vanishing_ind.append(i)
+                combinations = 1 << len(vanishing_ind)
+                vanishing_ind.append(len(rule))
+                for mask in range(combinations):
+                    beg = 0
+                    new_rule = []
+                    for i, ind in enumerate(vanishing_ind):
+                        new_rule.extend(rule[beg:ind + (1 if (1 << i) & mask else 0)])
+                        beg = ind + 1
+                    if new_rule:
+                        new_rules.append(new_rule)
+            self.rules[symb] = new_rules
+        # if there is an empty word in language we should add it
+        if self.start in vanishings:
+            new_start = self._get_next_unused()
+            self.non_terminals.add(new_start)
+            self.rules[new_start] = [[self.start], []]
+            self.start = new_start
+
+    def _get_next_unused(self) -> str:
+        """
+        Helper function to create new unused symbol
+        """
+        while str(self._last_used_symbol) in self.non_terminals:
+            self._last_used_symbol += 1
+        return str(self._last_used_symbol)
+
+
+
 
 def test_delete_extra():
     """
@@ -165,7 +203,15 @@ def test_has_recursion():
     assert grammar.has_left_recursion()
 
 
+def test_delete_vanishings():
+    grammar = ContextFreeGrammar({'a', 'b'}, {'A', 'B', 'C'}, 'A', {'A': ['BC'], 'B': ['C'], 'C': ['']})
+    assert not grammar.rules['B']
+    assert not grammar.rules['C']
+    assert grammar.rules['A'] == [[]]
+
+
 if __name__ == "__main__":
     test_delete_extra()
     test_vanishings()
     test_has_recursion()
+    test_delete_vanishings()
