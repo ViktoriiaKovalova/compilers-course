@@ -28,6 +28,19 @@ class Graph:
                 return True
         return False
 
+    def find_reachables(self) -> tp.Dict[T, tp.Set[T]]:
+        def dfs(v: T) -> None:
+            visited.add(v)
+            for u in self.graph[v]:
+                if u not in visited:
+                    dfs(u)
+        result = {}
+        for v in self.graph:
+            visited = set()
+            dfs(v)
+            result[v] = visited
+        return result
+
     def _dfs(self, v):
         if self.state[v] == Color.VISITED:
             return
